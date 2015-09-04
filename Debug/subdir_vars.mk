@@ -15,6 +15,7 @@ C_SRCS += \
 ../main.c \
 ../measure.c \
 ../pulse.c \
+../small_serial.c \
 ../soft_uart.c \
 ../spi.c \
 ../user_interf.c 
@@ -28,6 +29,7 @@ OBJS += \
 ./main.obj \
 ./measure.obj \
 ./pulse.obj \
+./small_serial.obj \
 ./soft_uart.obj \
 ./spi.obj \
 ./user_interf.obj 
@@ -41,6 +43,7 @@ C_DEPS += \
 ./main.pp \
 ./measure.pp \
 ./pulse.pp \
+./small_serial.pp \
 ./soft_uart.pp \
 ./spi.pp \
 ./user_interf.pp 
@@ -54,6 +57,7 @@ C_DEPS__QUOTED += \
 "main.pp" \
 "measure.pp" \
 "pulse.pp" \
+"small_serial.pp" \
 "soft_uart.pp" \
 "spi.pp" \
 "user_interf.pp" 
@@ -67,6 +71,7 @@ OBJS__QUOTED += \
 "main.obj" \
 "measure.obj" \
 "pulse.obj" \
+"small_serial.obj" \
 "soft_uart.obj" \
 "spi.obj" \
 "user_interf.obj" 
@@ -80,6 +85,7 @@ C_SRCS__QUOTED += \
 "../main.c" \
 "../measure.c" \
 "../pulse.c" \
+"../small_serial.c" \
 "../soft_uart.c" \
 "../spi.c" \
 "../user_interf.c" 

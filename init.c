@@ -107,7 +107,9 @@ void load_cal(void)
     unsigned char spi_volt_data;
     unsigned char *ptr_spi_volt_data;
     ptr_spi_volt_data = &spi_volt_data;
-        
+
+    //TODO: delte me
+    /* OBSOLET
     vref_l = read_flash_float(FLASH_VREF_L);         // load calibration
     *ptr_spi_volt_data = conv_dac(vref_l);           // assign Vref-
     spi_send(DAC_VREF_L, *ptr_spi_volt_data);
@@ -117,4 +119,22 @@ void load_cal(void)
     spi_send(DAC_VREF_H, *ptr_spi_volt_data);
     
     vref_vcc = read_flash_float(FLASH_VCC);          // load calibration
+    */
+
   }
+#ifdef _UART
+void init_uart(void){
+	//TODO: change to the right Pins
+	/*
+	P1SEL = BIT1 + BIT2 ;                     // P1.1 = RXD, P1.2=TXD
+	P1SEL2 = BIT1 + BIT2 ;                    // P1.1 = RXD, P1.2=TXD
+	*/
+
+	UCA0CTL1 |= UCSSEL_2;                     // SMCLK
+	UCA0BR0 = 0x41;                           // 8MHz/9600 = 833
+	UCA0BR1 = 0x03;                           // 833 = 0x0341
+	UCA0MCTL = UCBRS0;                        // Modulation UCBRSx = 1
+	UCA0CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
+	IE2 |= UCA0RXIE;                          // Enable USCI_A0 RX interrupt
+}
+#endif

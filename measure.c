@@ -17,7 +17,7 @@ unsigned int meas_moisture(void)
        {
          *ptr_mois_raw = *ptr_mois_raw + read_ADC(ADC_MOIS);
        }
-       *ptr_mois_raw = *ptr_mois_raw / 30;
-       stop_pulse();
-       return *ptr_mois_raw;
+     *ptr_mois_raw = *ptr_mois_raw / 30;
+     stop_pulse();
+     return *ptr_mois_raw;
   }

@@ -1,5 +1,6 @@
 /*
  * Original Michael Oberacher Code for Soil_moisture Sensor SMS50-v1
+ * - Vref change to internal 2,5V
  * - flash fixup
  */
 
@@ -24,13 +25,13 @@ volatile int temp_raw;				// temperature for compensation
 volatile int *ptr_temp_raw;
 
 volatile char moisture;          	// relative moisture
-volatile char *ptr_mois_perc;
+volatile char *ptr_mois_perc;		// mois in %
 
 volatile char spi_data;				// converted data for SPI message
 volatile char *ptr_spi_data;
 
 unsigned int meas_mois_raw;
-unsigned int *ptr_mois_raw;
+unsigned int *ptr_mois_raw;			// raw mois 0 - 1024
 
 float test_mois_volt;				//test variable
 
@@ -66,21 +67,18 @@ void main(void)
 
 
         //-------------MOISTURE--------------
-<<<<<<< Updated upstream
-        *ptr_meas_mois = meas_moisture();
-        test_mois_volt = *ptr_meas_mois * ((*ptr_vref_h - *ptr_vref_l)/1024) + *ptr_vref_l;
-        *ptr_moisture = conv_mois(*ptr_meas_mois);
-        *ptr_moisture = conv_mois_dac(*ptr_moisture);
-=======
         *ptr_mois_raw = meas_moisture();
-        test_mois_volt = *ptr_mois_raw * ((*ptr_vref_h - *ptr_vref_l)/1024) + *ptr_vref_l;
-        *ptr_mois_perc = conv_mois(*ptr_mois_raw);
-        *ptr_mois_perc = conv_mois_dac(*ptr_mois_perc);
->>>>>>> Stashed changes
+        //test_mois_volt = *ptr_meas_mois * ((*ptr_vref_h - *ptr_vref_l)/1024) + *ptr_vref_l;
+
+        // calculate with calibration values
+        *ptr_mois_perc = calc_mois_perc(*ptr_mois_raw);
+
+        //*ptr_moisture = conv_mois(*ptr_meas_mois);
+        char mois_out = conv_mois_dac(*ptr_mois_perc); //writeback to DAC
 
         //send to output
         _DINT();
-        spi_send(DAC_OUT_MOIS, *ptr_mois_perc);
+        spi_send(DAC_OUT_MOIS, mois_out);
         _EINT();
       };
   }
@@ -97,55 +95,104 @@ __interrupt void Port_2(void)
         unsigned int  *ptr_adc_value;
         ptr_adc_value = &adc_value;
         
-        _DINT();                                   // disable interrupt
+        _DINT();                                   	// disable interrupt
                      
-        *ptr_adc_value = read_ADC(ADC_VCC);        // measure supply voltage
+        *ptr_adc_value = read_ADC(ADC_VCC);        	// measure supply voltage
         
-        *ptr_vref_vcc = conv_vcc(*ptr_adc_value);  // convert to absolute voltage and save
+        *ptr_vref_vcc = *ptr_adc_value;  			// save VCC val
         
-        *ptr_spi_data = 0;                         // set VREF- to GND
+        //TODO: delete me
+        /* OBSOLET
+        *ptr_spi_data = 0;                         	// set VREF- to GND
         spi_send(DAC_VREF_L, *ptr_spi_data);
-        *ptr_spi_data = 255;                       // set Vref+ to Vcc
+        *ptr_spi_data = 255;                       	// set Vref+ to Vcc
         spi_send(DAC_VREF_H, *ptr_spi_data);
+        */
         
         // meas moisture with maximum delta_Volt DRY
         blink_led_poll_sw(LED_YE);
-<<<<<<< Updated upstream
-        *ptr_meas_mois = meas_moisture();
-        *ptr_vref_h = (*ptr_meas_mois) * (*ptr_vref_vcc / 1024.0);// save high reference (absolute)
-=======
         *ptr_mois_raw = meas_moisture();
-        *ptr_vref_h = (*ptr_mois_raw) * (*ptr_vref_vcc / 1024.0);		// save high reference (absolute)
->>>>>>> Stashed changes
+        *ptr_vref_h = (*ptr_mois_raw);		// save high reference raw
         
         confirm_led(LED_YE);
         
         // meas moisture with maximum delta_Volt MOIST
         blink_led_poll_sw(LED_GR);
-<<<<<<< Updated upstream
-        *ptr_meas_mois = meas_moisture();
-        *ptr_vref_l = (*ptr_meas_mois) * (*ptr_vref_vcc / 1024.0);// save high reference (absolute)
-        
-        erase_flash(FLASH_VREF_L);
-        
-        write_flash_float(*ptr_vref_l, *ptr_vref_h, *ptr_vref_vcc); // write config values to info flash
-=======
         *ptr_mois_raw = meas_moisture();
-        *ptr_vref_l = (*ptr_mois_raw) * (*ptr_vref_vcc / 1024.0);		// save high reference (absolute)
+        *ptr_vref_l = (*ptr_mois_raw);		// save low reference raw
         
         erase_flash(FLASH_VREF_L);
         
         write_flash_float(*ptr_vref_l, *ptr_vref_h, *ptr_vref_vcc); 	// write config values to info flash
->>>>>>> Stashed changes
 
-        confirm_led(LED_GR);                
+        confirm_led(LED_GR);
         
+        //TODO: delete me
+        /*  OBSOLET
         // set references for ADC10
         *ptr_spi_data = conv_dac(*ptr_vref_l);
         spi_send(DAC_VREF_L, *ptr_spi_data);
         *ptr_spi_data = conv_dac(*ptr_vref_h);
         spi_send(DAC_VREF_H, *ptr_spi_data);
+        */
         
         P2IFG &= ~CAL_SW;                     // clear interrupt flag
         _EINT();                              // enable interrupt
   }
+
+#ifdef _UART
+#pragma vector=USCIAB0RX_VECTOR
+__interrupt void USCI0RX_ISR(void)
+{
+	static int cmdMode = 0;
+	CMD cmd;
+	while (!(IFG2&UCA0TXIFG));                // USCI_A0 TX buffer ready?
+	char in_key = UCA0RXBUF;                  // TX -> RXed character
+
+	cmd.cmd = in_key;
+	cmd.val1 = 0x01;
+	cmd.val2 = 0x01;
+
+	switch (cmd.cmd) {
+	case CMD_MOIS:
+		cmd.val1 = *ptr_mois_perc;
+		break;
+	case CMD_VOLT:
+
+		break;
+	case CMD_MIN:
+		cmd.val1 = (char)((unsigned int)*ptr_vref_l>>8);
+		cmd.val2 = (char)((unsigned int)*ptr_vref_l&0xFF);
+		break;
+	case CMD_MAX:
+		cmd.val1 = (char)((unsigned int)*ptr_vref_h>>8);
+		cmd.val2 = (char)((unsigned int)*ptr_vref_h&0xFF);
+		break;
+	case CMD_CALI:
+
+		break;
+	case CMD_DRY:
+
+		break;
+	case CMD_WET:
+
+		break;
+	case CMD_FIN:
+
+		break;
+	case CMD_TEST:
+
+		break;
+	case CMD_VERS:
+		cmd.val1 = (char)(VERSION>>8);
+		cmd.val2 = (char)(VERSION&0xFF);
+		break;
+	default:
+		cmd.cmd = CMD_ERROR;
+		break;
+	}
+
+  putCMD(cmd);
+
+}
+#endif

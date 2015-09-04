@@ -1,4 +1,5 @@
 #include "global.h"
+#include "data_proc.h"
 //---------------------------------------DATA CONVERSIONS--------------------------
 
 //___TEMPERATURE VALUE CONVERSION___                                /* S_TEMPCON */
@@ -15,23 +16,30 @@ float conv_vcc(unsigned int adc_value)
     return vcc;
   }
 
-//___MOISTURE VALUE CONVERSION___
-unsigned char conv_mois(unsigned int adc_value)
+//___RETURN MOISTURE VALUE IN % value___
+unsigned char conv_mois(unsigned int v)
   {
-    unsigned char moisture = (char)(100 - (0.09765625 * (adc_value)));
-    return moisture;
+    unsigned char m = (char)(100 - (0.09765625 * (v)));
+    return m;
   }
 
-//___MOISTURE TO DAC CONVERSION___
+//___% TO DAC (0-255)___
 unsigned char conv_mois_dac(unsigned char moisture_percent)
   {
     unsigned char converted_moisture = (char)(moisture_percent * 2.55);
     return converted_moisture;
   }
 
-//___VALUE TO DAC CONVERSION___
+//___Volts to DAC 255___
 unsigned char conv_dac(float voltage)
   {
     unsigned char spi_dac = (char)(voltage * 62.5);
     return spi_dac;
   }
+
+//___RAW to %___
+int calc_mois_perc(unsigned int raw){
+	int back = 0;
+	back = 10*(10*(*ptr_vref_l - raw)/(*ptr_vref_l - *ptr_vref_h));
+	return back;
+}

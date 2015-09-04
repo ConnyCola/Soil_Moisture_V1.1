@@ -1,4 +1,7 @@
 //___PORT DEFINITIONS___                                            /* S_PORTDEF */
+
+#define VERSION 0x0011
+
 // calibration switch
 #define CAL_SW BIT5
 // SPI chip-select ports
@@ -47,3 +50,18 @@
 //temperature
 // #define CAL_ADC_15T30 *(unsigned int *) (0x10E2)
 // #define CAL_ADC_15T85 *(unsigned int *) (0x10E4)
+
+//#define _UART
+
+// UART commands
+#define CMD_MOIS 'A'
+#define CMD_VOLT 'B'
+#define CMD_MIN  'C'
+#define CMD_MAX  'D'
+#define CMD_CALI 'E'
+#define CMD_DRY  'F'
+#define CMD_WET  'G'
+#define CMD_FIN  'H'
+#define CMD_TEST 'I'
+#define CMD_VERS 'J'
+#define CMD_ERROR 'Z'

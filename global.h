@@ -10,4 +10,10 @@ extern volatile float *ptr_vref_l;
 extern volatile float vref_vcc;     // VCC at Vref
 extern volatile float *ptr_vref_vcc;
 
+typedef struct {
+	char cmd;
+	char val1;
+	char val2;
+} CMD;
+
 #endif
