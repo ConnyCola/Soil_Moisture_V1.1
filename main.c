@@ -28,7 +28,7 @@ volatile int moisture;          	// relative moisture
 volatile int *ptr_mois_perc;		// mois in %
 
 volatile char spi_data;				// converted data for SPI message
-volatile char *ptr_spi_data;
+volatile char *ptr_spi_data;		// 0 - 255
 
 unsigned int meas_mois_raw;
 unsigned int *ptr_mois_raw;			// raw mois 0 - 1024
@@ -80,7 +80,7 @@ void main(void)
         _DINT();
         spi_send(DAC_OUT_MOIS, mois_out);
         _EINT();
-      };
+      }
   }
 
 
@@ -101,6 +101,10 @@ __interrupt void Port_2(void)
         
         *ptr_vref_vcc = *ptr_adc_value;  			// save VCC val
         
+        // Set Vref+ to max to be able to use internal Vref2.5
+        *ptr_spi_data = 255;                       	// set Vref+ to Vcc
+        spi_send(DAC_VREF_H, *ptr_spi_data);
+
         //TODO: delete me
         /* OBSOLET
         *ptr_spi_data = 0;                         	// set VREF- to GND
@@ -112,14 +116,14 @@ __interrupt void Port_2(void)
         // meas moisture with maximum delta_Volt DRY
         blink_led_poll_sw(LED_YE);
         *ptr_mois_raw = meas_moisture();
-        *ptr_vref_h = (*ptr_mois_raw);		// save high reference raw
+        *ptr_vref_h = (*ptr_mois_raw);				// save high reference raw
         
         confirm_led(LED_YE);
         
         // meas moisture with maximum delta_Volt MOIST
         blink_led_poll_sw(LED_GR);
         *ptr_mois_raw = meas_moisture();
-        *ptr_vref_l = (*ptr_mois_raw);		// save low reference raw
+        *ptr_vref_l = (*ptr_mois_raw);				// save low reference raw
         
         erase_flash(FLASH_VREF_L);
         
@@ -136,6 +140,7 @@ __interrupt void Port_2(void)
         spi_send(DAC_VREF_H, *ptr_spi_data);
         */
         
+
         P2IFG &= ~CAL_SW;                     // clear interrupt flag
         _EINT();                              // enable interrupt
   }

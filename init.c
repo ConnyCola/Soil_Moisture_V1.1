@@ -108,6 +108,10 @@ void load_cal(void)
     unsigned char *ptr_spi_volt_data;
     ptr_spi_volt_data = &spi_volt_data;
 
+    // Set Vref+ to max to be able to use internal Vref2.5
+    char maxOUT = 255;                       		// set Vref+ to Vcc
+    spi_send(DAC_VREF_H, maxOUT);
+
     //TODO: delte me
     /* OBSOLET
     vref_l = read_flash_float(FLASH_VREF_L);         // load calibration
