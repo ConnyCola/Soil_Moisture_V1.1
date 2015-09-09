@@ -23,11 +23,12 @@ unsigned char conv_mois(unsigned int v)
     return m;
   }
 
-//___% TO DAC (0-255)___
-unsigned char conv_mois_dac(unsigned char moisture_percent)
+//___RAW TO DAC (0-255)___
+unsigned char conv_mois_dac(int raw)
   {
-    unsigned char converted_moisture = (char)(moisture_percent * 2.55);
-    return converted_moisture;
+	long back = 0;
+	back = ((255*(long)(raw - *ptr_vref_l))/((long)(*ptr_vref_h - *ptr_vref_l)));
+	return (unsigned char)back;
   }
 
 //___Volts to DAC 255___
@@ -38,8 +39,8 @@ unsigned char conv_dac(float voltage)
   }
 
 //___RAW to %___
-int calc_mois_perc(unsigned int raw){
-	int back = 0;
-	back = 10*(10*(*ptr_vref_l - raw)/(*ptr_vref_l - *ptr_vref_h));
+int calc_mois_perc(long raw){
+	float back = 0;
+	back = ((100*(long)(raw - *ptr_vref_l))/((long)(*ptr_vref_h - *ptr_vref_l)));
 	return back;
 }

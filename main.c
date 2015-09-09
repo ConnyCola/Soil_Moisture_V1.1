@@ -24,8 +24,8 @@ volatile int *ptr_temperature;
 volatile int temp_raw;				// temperature for compensation
 volatile int *ptr_temp_raw;
 
-volatile char moisture;          	// relative moisture
-volatile char *ptr_mois_perc;		// mois in %
+volatile int moisture;          	// relative moisture
+volatile int *ptr_mois_perc;		// mois in %
 
 volatile char spi_data;				// converted data for SPI message
 volatile char *ptr_spi_data;
@@ -74,7 +74,7 @@ void main(void)
         *ptr_mois_perc = calc_mois_perc(*ptr_mois_raw);
 
         //*ptr_moisture = conv_mois(*ptr_meas_mois);
-        char mois_out = conv_mois_dac(*ptr_mois_perc); //writeback to DAC
+        char mois_out = conv_mois_dac(*ptr_mois_raw); //writeback to DAC
 
         //send to output
         _DINT();
@@ -123,7 +123,7 @@ __interrupt void Port_2(void)
         
         erase_flash(FLASH_VREF_L);
         
-        write_flash_float(*ptr_vref_l, *ptr_vref_h, *ptr_vref_vcc); 	// write config values to info flash
+        write_flash_Vref(*ptr_vref_l, *ptr_vref_h, *ptr_vref_vcc); 	// write config values to info flash
 
         confirm_led(LED_GR);
         

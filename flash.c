@@ -18,23 +18,23 @@ void erase_flash(int addr)
   }
                                                                  /* E_ERASEFLASH */
 //___WRITE TO FLASH___                                           /* S_WRITEFLASH */
-void write_flash_float(float val_vref_l, float val_vref_h, float val_vcc)
+void write_flash_Vref(int val_vref_l, int val_vref_h, int val_vcc)
   {
-    float *ptr_float_addr;                 // init pointer
-    float float_addr;
-    ptr_float_addr = &float_addr;
+    int *ptr_flash_addr;                 // init pointer
+    int flash_addr;
+    ptr_flash_addr = &flash_addr;
     
     while(FCTL3 & BUSY){};                 // wait till timing gen is ready
     FCTL3 = FWKEY;                         // Clear Lock bit
     FCTL1 = FWKEY + WRT;                   // prepare to write
     
     //addresses come from defines.h
-    ptr_float_addr = (float *)FLASH_VREF_L;// set address
-    *ptr_float_addr = val_vref_l;          // save Vref- to flash
-    ptr_float_addr = (float *)FLASH_VREF_H;// set address
-    *ptr_float_addr = val_vref_h;          // save Vref+ to flash
-    ptr_float_addr = (float *)FLASH_VCC;   // set address
-    *ptr_float_addr = val_vcc;             // save VCC to flash
+    ptr_flash_addr = (int *)FLASH_VREF_L;// set address
+    *ptr_flash_addr = val_vref_l;          // save Vref- to flash
+    ptr_flash_addr = (int *)FLASH_VREF_H;// set address
+    *ptr_flash_addr = val_vref_h;          // save Vref+ to flash
+    ptr_flash_addr = (int *)FLASH_VCC;   // set address
+    *ptr_flash_addr = val_vcc;             // save VCC to flash
     while(!(FCTL3 & WAIT)){};              // wait while writing
     FCTL1 = FWKEY;                         // Clear WRT bit
     FCTL3 = FWKEY + LOCKA + LOCK;          // Set LOCK & LOCKA bit
