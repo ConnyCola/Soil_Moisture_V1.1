@@ -12,8 +12,8 @@ extern volatile int *ptr_vref_vcc;
 
 typedef struct {
 	char cmd;
-	char val1;
-	char val2;
+	int val1;
+	int val2;
 } CMD;
 
 #endif

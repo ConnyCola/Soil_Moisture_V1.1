@@ -2,6 +2,8 @@
  * Original Michael Oberacher Code for Soil_moisture Sensor SMS50-v1
  * - Vref change to internal 2,5V
  * - flash fixup
+ * - Calculation formula change
+ * - UART implementation
  */
 
 #include <msp430G2452.h>
@@ -15,6 +17,7 @@
 #include "pulse.h"
 #include "user_interf.h"
 #include "measure.h"
+#include "serial/serial.h"
 
 //VARIABLES
 
@@ -43,9 +46,7 @@ void main(void)
     ptr_temperature = &temperature;  
     
     ptr_mois_raw = &meas_mois_raw;
-    
     ptr_mois_perc = &moisture;
-    
     ptr_spi_data = &spi_data;
     
     init_system();					// init. system
@@ -145,59 +146,68 @@ __interrupt void Port_2(void)
         _EINT();                              // enable interrupt
   }
 
+//#define _UART
+
 #ifdef _UART
 #pragma vector=USCIAB0RX_VECTOR
 __interrupt void USCI0RX_ISR(void)
 {
+	//TEST structure
+	*ptr_mois_perc = *ptr_mois_perc < 100 ? *ptr_mois_perc+1 : 0;
+
 	static int cmdMode = 0;
 	CMD cmd;
-	while (!(IFG2&UCA0TXIFG));                // USCI_A0 TX buffer ready?
+	while (!(UCA0IFG&UCTXIFG));             // USCI_A0 TX buffer ready?
 	char in_key = UCA0RXBUF;                  // TX -> RXed character
 
 	cmd.cmd = in_key;
-	cmd.val1 = 0x01;
-	cmd.val2 = 0x01;
+	cmd.val1 = 0x00;
+	cmd.val2 = 0x00;
 
 	switch (cmd.cmd) {
 	case CMD_MOIS:
 		cmd.val1 = *ptr_mois_perc;
 		break;
 	case CMD_VOLT:
-
+		cmd.val1 = (*ptr_mois_perc*25);
 		break;
 	case CMD_MIN:
-		cmd.val1 = (char)((unsigned int)*ptr_vref_l>>8);
-		cmd.val2 = (char)((unsigned int)*ptr_vref_l&0xFF);
+		cmd.val1 = *ptr_vref_l;
 		break;
 	case CMD_MAX:
-		cmd.val1 = (char)((unsigned int)*ptr_vref_h>>8);
-		cmd.val2 = (char)((unsigned int)*ptr_vref_h&0xFF);
+		cmd.val1 = *ptr_vref_h;
 		break;
 	case CMD_CALI:
-
+		cmd.val1 = 1;
 		break;
 	case CMD_DRY:
-
+		*ptr_vref_l = 330; //*ptr_mois_raw;
+		cmd.val1 = *ptr_vref_l;
 		break;
 	case CMD_WET:
-
+		*ptr_vref_h = 970; //*ptr_mois_raw;
+		cmd.val1 = *ptr_vref_h;
 		break;
 	case CMD_FIN:
-
+		cmd.val1 = 1;
+        erase_flash(FLASH_VREF_L);
+        write_flash_Vref(*ptr_vref_l, *ptr_vref_h, *ptr_vref_vcc); 	// write config values to info flash
 		break;
 	case CMD_TEST:
-
+		*ptr_vref_l = 450;
+		*ptr_vref_h = 1033;
 		break;
 	case CMD_VERS:
-		cmd.val1 = (char)(VERSION>>8);
-		cmd.val2 = (char)(VERSION&0xFF);
+		cmd.val1 = VERSION_test;
+		cmd.val2 = BUILD;
 		break;
 	default:
 		cmd.cmd = CMD_ERROR;
 		break;
 	}
 
-  putCMD(cmd);
+	send_CMD(cmd);
 
 }
 #endif
+

@@ -41,15 +41,15 @@ void write_flash_Vref(int val_vref_l, int val_vref_h, int val_vcc)
   }
                                                                  /* E_WRITEFLASH */
 //___READ FROM FLASH___                                           /* S_READFLASH */
-float read_flash_float(int addr)
+int read_flash_ref(int addr)
   {
-    float *ptr_float_addr;
-    float float_addr;
-    float flash_data;
-    ptr_float_addr = &float_addr;
+    int *ptr_flash_addr;
+    int flash_addr;
+    int flash_data;
+    ptr_flash_addr = &flash_addr;
     
-    ptr_float_addr = (float *)addr;        // redirect pointer to address
-    flash_data = *ptr_float_addr;
+    ptr_flash_addr = (int *)addr;        // redirect pointer to address
+    flash_data = *ptr_flash_addr;
     return flash_data;                     // return loaded value
   }
                                                                   /* E_READFLASH */

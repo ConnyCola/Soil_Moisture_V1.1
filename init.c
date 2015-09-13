@@ -112,18 +112,9 @@ void load_cal(void)
     char maxOUT = 255;                       		// set Vref+ to Vcc
     spi_send(DAC_VREF_H, maxOUT);
 
-    //TODO: delte me
-    /* OBSOLET
-    vref_l = read_flash_float(FLASH_VREF_L);         // load calibration
-    *ptr_spi_volt_data = conv_dac(vref_l);           // assign Vref-
-    spi_send(DAC_VREF_L, *ptr_spi_volt_data);
-    
-    vref_h = read_flash_float(FLASH_VREF_H);         // load calibration
-    *ptr_spi_volt_data = conv_dac(vref_h);           // assign Vref-
-    spi_send(DAC_VREF_H, *ptr_spi_volt_data);
-    
-    vref_vcc = read_flash_float(FLASH_VCC);          // load calibration
-    */
+    vref_l = read_flash_ref(FLASH_VREF_L);         // load calibration
+    vref_h = read_flash_ref(FLASH_VREF_H);         // load calibration
+    vref_vcc = read_flash_ref(FLASH_VCC);          // load calibration
 
   }
 #ifdef _UART

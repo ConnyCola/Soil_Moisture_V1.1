@@ -1,6 +1,8 @@
 //___PORT DEFINITIONS___                                            /* S_PORTDEF */
 
-#define VERSION 0x0011
+#define VERSION 0x0101
+#define BUILD   0x0003
+
 
 // calibration switch
 #define CAL_SW BIT5
